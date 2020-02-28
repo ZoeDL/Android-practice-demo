@@ -3,6 +3,7 @@
     package="com.example.instagram">
 
     <application
+        android:name=".StarterApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

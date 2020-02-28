@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.parse.LogInCallback;
 import com.parse.Parse;
+import com.parse.ParseAnalytics;
 import com.parse.ParseException;
 import com.parse.ParseUser;
 import com.parse.SignUpCallback;
@@ -48,16 +49,7 @@ public class MainActivity extends AppCompatActivity implements View.OnKeyListene
         background.setOnClickListener(this);
         logo.setOnClickListener(this);
 
-        // Enable Local Datastore.
-        Parse.enableLocalDatastore(this);
-
-        // Add initialization code to connect to the Parse Server
-        Parse.initialize(new Parse.Configuration.Builder(getApplicationContext())
-                .applicationId("4dc14be04cd16942fdda3cc074c11d02eef500d1")
-                .clientKey("d5ee1d253722b75c7635cfccc9f9ad5d2a02617f")
-                .server("http://18.217.23.166:80/parse/")
-                .build()
-        );
+        ParseAnalytics.trackAppOpenedInBackground(getIntent());
     }
 
 
