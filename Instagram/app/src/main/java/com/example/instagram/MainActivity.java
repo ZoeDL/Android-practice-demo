@@ -1,12 +1,15 @@
 package com.example.instagram;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,14 +21,14 @@ import com.parse.SignUpCallback;
 
 import static android.widget.Toast.*;
 
-public class MainActivity extends AppCompatActivity implements View.OnKeyListener {
+public class MainActivity extends AppCompatActivity implements View.OnKeyListener, View.OnClickListener {
     Button button;
     TextView passwordView;
 
     // Add keyboard listener to "ENTER"
     @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
-        if(keyCode == KeyEvent.KEYCODE_ENTER) {
+        if(keyCode == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN) {
             tapButton(v);
         }
         return false;
@@ -36,10 +39,14 @@ public class MainActivity extends AppCompatActivity implements View.OnKeyListene
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ConstraintLayout background = findViewById(R.id.background);
+        ImageView logo = findViewById(R.id.logo);
         button = findViewById(R.id.loginButton);
         passwordView = findViewById(R.id.password);
 
         passwordView.setOnKeyListener(this);
+        background.setOnClickListener(this);
+        logo.setOnClickListener(this);
 
         // Enable Local Datastore.
         Parse.enableLocalDatastore(this);
@@ -107,4 +114,11 @@ public class MainActivity extends AppCompatActivity implements View.OnKeyListene
     }
 
 
+    @Override
+    public void onClick(View v) {
+        if(v.getId() == R.id.background || v.getId() == R.id.logo) {
+            InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        }
+    }
 }
