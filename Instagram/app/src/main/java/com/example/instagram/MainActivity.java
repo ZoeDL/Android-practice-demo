@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -17,8 +18,18 @@ import com.parse.SignUpCallback;
 
 import static android.widget.Toast.*;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnKeyListener {
     Button button;
+    TextView passwordView;
+
+    // Add keyboard listener to "ENTER"
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        if(keyCode == KeyEvent.KEYCODE_ENTER) {
+            tapButton(v);
+        }
+        return false;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         button = findViewById(R.id.loginButton);
+        passwordView = findViewById(R.id.password);
+
+        passwordView.setOnKeyListener(this);
 
         // Enable Local Datastore.
         Parse.enableLocalDatastore(this);
@@ -43,7 +57,6 @@ public class MainActivity extends AppCompatActivity {
     public void tapButton(View view) {
         String mode = button.getText().toString();
         TextView usernameView = findViewById(R.id.username);
-        TextView passwordView = findViewById(R.id.password);
 
         String username = usernameView.getText().toString().trim();
         String password = passwordView.getText().toString().trim();
@@ -92,4 +105,6 @@ public class MainActivity extends AppCompatActivity {
             textView.setText("or Login");
         }
     }
+
+
 }
