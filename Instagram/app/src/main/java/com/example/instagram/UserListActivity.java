@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,11 +19,15 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseFile;
+import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -98,8 +103,27 @@ public class UserListActivity extends AppCompatActivity {
         if(requestCode == 1 && resultCode == RESULT_OK && data != null) {
             Uri image = data.getData();
             try {
-                MediaStore.Images.Media.getBitmap(this.getContentResolver(),image);
-                Log.i("!!!!!!!", "photo received!");
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), image);
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                // must store the data in byte[] form
+                byte[] byteArray = stream.toByteArray();
+                ParseFile file = new ParseFile("image.png", byteArray);
+                // must save the file in background
+                file.saveInBackground();
+                ParseObject object = new ParseObject("Image");
+                object.put("image", file);
+                object.put("username", ParseUser.getCurrentUser().getUsername());
+                object.saveInBackground(new SaveCallback() {
+                    @Override
+                    public void done(ParseException e) {
+                        if(e == null) {
+                            Toast.makeText(getApplicationContext(), "Image upload succeed!", Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Image upload FAILED. Please try again", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
             } catch (IOException e) {
                 e.printStackTrace();
             }
