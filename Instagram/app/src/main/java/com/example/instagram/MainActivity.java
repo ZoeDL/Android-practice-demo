@@ -3,8 +3,8 @@ package com.example.instagram;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -14,7 +14,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.LogInCallback;
-import com.parse.Parse;
 import com.parse.ParseAnalytics;
 import com.parse.ParseException;
 import com.parse.ParseUser;
@@ -35,10 +34,21 @@ public class MainActivity extends AppCompatActivity implements View.OnKeyListene
         return false;
     }
 
+    public void viewUserList() {
+        Intent intent = new Intent(this, UserListActivity.class);
+        startActivity(intent);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // ParseUser.logOut();
+
+        if(ParseUser.getCurrentUser() != null) {
+            viewUserList();
+        }
 
         ConstraintLayout background = findViewById(R.id.background);
         ImageView logo = findViewById(R.id.logo);
@@ -73,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements View.OnKeyListene
             user.signUpInBackground(new SignUpCallback() {
                 public void done(ParseException e) {
                     if (e == null) {
-                        Log.i("sign up", "Succeed!");
+                         viewUserList();
                     } else {
                         Toast.makeText(getApplicationContext(), e.toString().split(":")[1], Toast.LENGTH_LONG).show();
                     }
@@ -84,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements View.OnKeyListene
                 @Override
                 public void done(ParseUser user, ParseException e) {
                     if(user != null) {
-                        Toast.makeText(getApplicationContext(), "Log in success!!", Toast.LENGTH_LONG).show();
+                        viewUserList();
                     } else {
                         Toast.makeText(getApplicationContext(), e.toString().split(":")[1], Toast.LENGTH_LONG).show();
                     }
