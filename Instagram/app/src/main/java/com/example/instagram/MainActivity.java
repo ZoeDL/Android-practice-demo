@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity implements View.OnKeyListene
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        setTitle("Instagram");
+
         // ParseUser.logOut();
 
         if(ParseUser.getCurrentUser() != null) {
