@@ -18,12 +18,15 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckedTextView;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
+import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseObject;
@@ -33,6 +36,7 @@ import com.parse.SaveCallback;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,35 +44,87 @@ public class UserListActivity extends AppCompatActivity {
     ArrayList<String> users;
     ListView userList;
     ArrayAdapter<String> arrayAdapter;
+    ParseUser activeUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_list);
         setTitle("User List");
+        activeUser = ParseUser.getCurrentUser();
+
+        if (activeUser.getList("isFollowing") == null) {
+            ArrayList<String> followingUsers = new ArrayList<>();
+            activeUser.put("isFollowing", followingUsers);
+        }
 
         users = new ArrayList<String>();
         userList = findViewById(R.id.userList);
-        // go to the user list
-        userList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getApplicationContext(), UserFeedActivity.class);
-                intent.putExtra("username", users.get(position));
-                startActivity(intent);
-            }
-        });
+        userList.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+        arrayAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_checked, users);
+        userList.setAdapter(arrayAdapter);
 
+//        // go to the user feed
+//        userList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                Intent intent = new Intent(getApplicationContext(), UserFeedActivity.class);
+//                intent.putExtra("username", users.get(position));
+//                startActivity(intent);
+//            }
+//        });
+        // query all the users in the database
         ParseQuery<ParseUser> query = ParseUser.getQuery();
-        query.whereNotEqualTo("username", ParseUser.getCurrentUser().getUsername());
+        query.whereNotEqualTo("username", activeUser.getString("username"));
         query.findInBackground(new FindCallback<ParseUser>() {
             @Override
             public void done(List<ParseUser> objects, ParseException e) {
-                for(ParseUser user : objects) {
-                    users.add(user.getUsername());
+                if(e == null && objects.size() > 0) {
+                    for(ParseUser user : objects) {
+                        users.add(user.getUsername());
+                    }
+                    arrayAdapter.notifyDataSetChanged();
+
+                    // query all the following users of the current user
+                    ParseQuery<ParseUser> queryFollowers = ParseUser.getQuery();
+                    queryFollowers.whereEqualTo("username", activeUser.getUsername());
+                    queryFollowers.getInBackground(activeUser.getObjectId(), new GetCallback<ParseUser>() {
+                        @Override
+                        public void done(ParseUser object, ParseException e) {
+                            ArrayList<String> followers = (ArrayList) object.getList("isFollowing");
+                            if(followers != null && followers.size() > 0) {
+                                for(String follower : followers) {
+                                    for(int i=0; i<users.size(); i++) {
+                                        if(users.get(i).equals(follower)) {
+                                            userList.setItemChecked(i, true);
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+                    });
                 }
-                arrayAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, users);
-                userList.setAdapter(arrayAdapter);
+            }
+        });
+
+
+
+
+        userList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                CheckedTextView checkedTextView = (CheckedTextView) view;
+                if(checkedTextView.isChecked()) {
+                    activeUser.addUnique("isFollowing", users.get(position));
+                    activeUser.saveInBackground();
+                } else {
+                    ArrayList<String> followingUsers = (ArrayList)activeUser.getList("isFollowing");
+                    // update arraylist
+                    followingUsers.remove(users.get(position));
+                    activeUser.put("isFollowing", followingUsers);
+                    activeUser.saveInBackground();
+                }
             }
         });
     }
@@ -129,7 +185,7 @@ public class UserListActivity extends AppCompatActivity {
                 file.saveInBackground();
                 ParseObject object = new ParseObject("Image");
                 object.put("image", file);
-                object.put("username", ParseUser.getCurrentUser().getUsername());
+                object.put("username", activeUser.getString("username"));
                 object.saveInBackground(new SaveCallback() {
                     @Override
                     public void done(ParseException e) {
