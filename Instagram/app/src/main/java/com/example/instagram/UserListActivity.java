@@ -85,25 +85,13 @@ public class UserListActivity extends AppCompatActivity {
                     }
                     arrayAdapter.notifyDataSetChanged();
 
-                    // query all the following users of the current user
-                    ParseQuery<ParseUser> queryFollowers = ParseUser.getQuery();
-                    queryFollowers.whereEqualTo("username", activeUser.getUsername());
-                    queryFollowers.getInBackground(activeUser.getObjectId(), new GetCallback<ParseUser>() {
-                        @Override
-                        public void done(ParseUser object, ParseException e) {
-                            ArrayList<String> followers = (ArrayList) object.getList("isFollowing");
-                            if(followers != null && followers.size() > 0) {
-                                for(String follower : followers) {
-                                    for(int i=0; i<users.size(); i++) {
-                                        if(users.get(i).equals(follower)) {
-                                            userList.setItemChecked(i, true);
-                                        }
-                                    }
-                                }
-                            }
-
+                    // make all the followers of the active user checked
+                    ArrayList<String> followers = (ArrayList) activeUser.getList("isFollowing");
+                    for(int i=0; i<users.size(); i++) {
+                        if(followers.contains(users.get(i))) {
+                            userList.setItemChecked(i, true);
                         }
-                    });
+                    }
                 }
             }
         });
