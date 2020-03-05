@@ -46,10 +46,9 @@ public class MainActivity extends AppCompatActivity implements View.OnKeyListene
 
         setTitle("Instagram");
 
-        // ParseUser.logOut();
-
         if(ParseUser.getCurrentUser() != null) {
-            viewUserList();
+            Intent intent = new Intent(this, UserFeedActivity.class);
+            startActivity(intent);
         }
 
         ConstraintLayout background = findViewById(R.id.background);
